@@ -142,17 +142,6 @@ Clone the repo to you local workstation and `cd` into it.
 
 4. Fill out the Age public key in the `.config.env` under `BOOTSTRAP_AGE_PUBLIC_KEY`, **note** the public key should start with `age`...
 
-### ☁️ Global Cloudflare API Key
-
-In order to use Terraform and `cert-manager` with the Cloudflare DNS challenge you will need to create a API key.
-
-1. Head over to Cloudflare and create a API key by going [here](https://dash.cloudflare.com/profile/api-tokens).
-
-2. Under the `API Keys` section, create a global API Key.
-
-3. Use the API Key in the configuration section below.
-
-📍 You may wish to update this later on to a Cloudflare **API Token** which can be scoped to certain resources. I do not recommend using a Cloudflare **API Key**, however for the purposes of this template it is easier getting started without having to define which scopes and resources are needed. For more information see the [Cloudflare docs on API Keys and Tokens](https://developers.cloudflare.com/api/).
 
 ### 📄 Configuration
 
@@ -241,8 +230,23 @@ In order to use Terraform and `cert-manager` with the Cloudflare DNS challenge y
     ```sh
     task ansible:install
     ```
+4.  Set KUBECONGFIG environment variable (fish shell)
 
-4. Verify the nodes are online
+    ```
+    set -x KUBECONFIG (pwd)/provision/kubeconfig
+    ```
+
+5. Update node label for worker node(s)
+
+    ```
+    kubectl get nodes -o name
+    node/kc1
+    node/kw1
+
+    kubectl label node/kw1 kubernetes.io/role=worker
+    ```
+
+6. Verify the nodes are online
 
     ```sh
     task cluster:nodes
@@ -250,34 +254,6 @@ In order to use Terraform and `cert-manager` with the Cloudflare DNS challenge y
     # k8s-0          Ready    control-plane,master      4d20h   v1.21.5+k3s1
     # k8s-1          Ready    worker                    4d20h   v1.21.5+k3s1
     ```
-
-### ☁️ Configuring Cloudflare DNS with Terraform
-
-📍 Review the Terraform scripts under `./provision/terraform/cloudflare/` and make sure you understand what it's doing (no really review it).
-
-If your domain already has existing DNS records **be sure to export those DNS settings before you continue**.
-
-1. Pull in the Terraform deps
-
-    ```sh
-    task terraform:init
-    ```
-
-2. Review the changes Terraform will make to your Cloudflare domain
-
-    ```sh
-    task terraform:plan
-    ```
-
-3. Have Terraform apply your Cloudflare settings
-
-    ```sh
-    task terraform:apply
-    ```
-
-If Terraform was ran successfully you can log into Cloudflare and validate the DNS records are present.
-
-The cluster application [external-dns](https://github.com/kubernetes-sigs/external-dns) will be managing the rest of the DNS records you will need.
 
 ### 🔹 GitOps with Flux
 
