@@ -230,13 +230,7 @@ Clone the repo to you local workstation and `cd` into it.
     ```sh
     task ansible:install
     ```
-4.  Set KUBECONGFIG environment variable (fish shell)
-
-    ```
-    set -x KUBECONFIG (pwd)/provision/kubeconfig
-    ```
-
-5. Update node label for worker node(s)
+4. Update node label for worker node(s)
 
     ```
     kubectl get nodes -o name
@@ -246,7 +240,7 @@ Clone the repo to you local workstation and `cd` into it.
     kubectl label node/kw1 kubernetes.io/role=worker
     ```
 
-6. Verify the nodes are online
+5. Verify the nodes are online
 
     ```sh
     task cluster:nodes

@@ -8,7 +8,7 @@ spec:
   interval: 30m
   ref:
     branch: main
-  url: git@github.com:patkaehuaea/flux-cluster-template.git
+  url: git@github.com:patkaehuaea/argocd-cluster-template.git
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization

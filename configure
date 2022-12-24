@@ -34,7 +34,6 @@ main() {
         verify_addressing
         verify_age
         verify_git_repository
-        verify_cloudflare
         verify_success
     else
         # generate sops configuration file
@@ -63,11 +62,6 @@ main() {
         sops --encrypt --in-place "${PROJECT_DIR}/cluster/apps/kube-system/cert-manager/issuers/secret.sops.yaml"
         sops --encrypt --in-place "${PROJECT_DIR}/cluster/apps/kube-system/cloudflare-ddns/secret.sops.yaml"
         sops --encrypt --in-place "${PROJECT_DIR}/cluster/apps/kube-system/external-dns/secret.sops.yaml"
-        # generate terraform secrets
-        envsubst < "${PROJECT_DIR}/tmpl/terraform/secret.sops.yaml" \
-            > "${PROJECT_DIR}/provision/terraform/cloudflare/secret.sops.yaml"
-        # encrypt terraform secrets
-        sops --encrypt --in-place "${PROJECT_DIR}/provision/terraform/cloudflare/secret.sops.yaml"
         # generate ansible settings
         envsubst < "${PROJECT_DIR}/tmpl/ansible/kube-vip.yml" \
             > "${PROJECT_DIR}/provision/ansible/inventory/group_vars/kubernetes/kube-vip.yml"
@@ -323,30 +317,6 @@ setup_github_webhook() {
         if [[ $(yq eval --no-doc 'contains({"resources": ["./webhooks"]})' "${PROJECT_DIR}/cluster/flux/config/kustomization.yaml") == false ]]; then
             yq --inplace '.resources += [ "./webhooks" ]' "${PROJECT_DIR}/cluster/flux/config/kustomization.yaml"
         fi
-    fi
-}
-
-verify_cloudflare() {
-    local account_zone=
-    local errors=
-
-    _has_envar "BOOTSTRAP_CLOUDFLARE_APIKEY"
-    _has_envar "BOOTSTRAP_CLOUDFLARE_DOMAIN"
-    _has_envar "BOOTSTRAP_CLOUDFLARE_EMAIL"
-
-    # Try to retrieve zone information from Cloudflare's API
-    account_zone=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${BOOTSTRAP_CLOUDFLARE_DOMAIN}&status=active" \
-        -H "X-Auth-Email: ${BOOTSTRAP_CLOUDFLARE_EMAIL}" \
-        -H "X-Auth-Key: ${BOOTSTRAP_CLOUDFLARE_APIKEY}" \
-        -H "Content-Type: application/json"
-    )
-
-    if [[ "$(echo "${account_zone}" | jq ".success")" == "true" ]]; then
-        _log "INFO" "Verified Cloudflare Account and Zone information"
-    else
-        errors=$(echo "${account_zone}" | jq -c ".errors")
-        _log "ERROR" "Unable to get Cloudflare Account and Zone information ${errors}"
-        exit 1
     fi
 }
 
